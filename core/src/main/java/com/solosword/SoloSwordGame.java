@@ -13,6 +13,9 @@ public class SoloSwordGame extends ApplicationAdapter {
     private Texture image;
     private float playerX = 140;
     private float playerY = 210;
+    private float playerSpeed = 200;
+    private String facingDirection = "down";
+
 
     @Override
     public void create() {
@@ -20,31 +23,42 @@ public class SoloSwordGame extends ApplicationAdapter {
         image = new Texture("libgdx.png");
     }
 
+    //framerate dependant movement
     @Override
     public void render() {
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+        float deltaTime = Gdx.graphics.getDeltaTime();
 
-        //movement input WASD
-        //right
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            playerX += 2;
-        }
-        //left
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            playerX -= 2;
-        }
-        //up
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            playerY += 2;
-        }
-        //down
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            playerY -= 2;
-        }
+        handleInput(deltaTime);
+
+        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
         batch.begin();
         batch.draw(image, playerX, playerY);
         batch.end();
+    }
+
+    private void handleInput(float deltaTime) {
+        float moveAmount = playerSpeed * deltaTime;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+            playerX += moveAmount;
+            facingDirection = "right";
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            playerX -= moveAmount;
+            facingDirection = "left";
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+            playerY += moveAmount;
+            facingDirection = "up";
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            playerY -= moveAmount;
+            facingDirection = "down";
+        }
     }
 
     @Override
