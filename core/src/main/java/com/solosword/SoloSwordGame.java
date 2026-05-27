@@ -31,6 +31,11 @@ public class SoloSwordGame extends ApplicationAdapter {
     private float enemyWidth = 32;
     private float enemyHeight = 32;
 
+    private float swordX;
+    private float swordY;
+    private float swordWidth = 32;
+    private float swordHeight = 32;
+
     private boolean enemyAlive = true;
 
 
@@ -44,10 +49,16 @@ public class SoloSwordGame extends ApplicationAdapter {
 
     //create a sword hitbox
     private void drawSwordHitBox() {
-        float swordX = playerX;
-        float swordY = playerY;
-        float swordWidth = 32;
-        float swordHeight = 32;
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(swordX, swordY, swordWidth, swordHeight);
+        shapeRenderer.end();
+    }
+
+
+    private void updateSwordHitBox() {
+        swordX = playerX;
+        swordY = playerY;
 
         if (facingDirection.equals("right")) {
             swordX = playerX + playerWidth;
@@ -68,21 +79,8 @@ public class SoloSwordGame extends ApplicationAdapter {
             swordX = playerX;
             swordY = playerY - swordHeight;
         }
-
-        //if sword dimensions overlap with enemy, dead
-        if (enemyAlive && rectanglesOverlap(
-            swordX, swordY, swordWidth, swordHeight,
-             enemyX, enemyY, enemyWidth, enemyHeight
-        )) {
-            enemyAlive = false;
-        }
-
-        //"sword" size/color
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(swordX, swordY, swordWidth, swordHeight);
-        shapeRenderer.end();
     }
+
     //create enemy, check alive
     private void drawEnemy() {
         if (!enemyAlive) {
@@ -95,8 +93,12 @@ public class SoloSwordGame extends ApplicationAdapter {
         shapeRenderer.end();
     }
 
-    private void updateGame(){
-
+    //create player
+    private void drawPlayer() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(Color.BLACK);
+        shapeRenderer.rect(playerX, playerY, playerWidth, playerHeight);
+        shapeRenderer.end();
     }
 
     //framerate dependant movement
@@ -109,15 +111,24 @@ public class SoloSwordGame extends ApplicationAdapter {
 
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.BLACK);
-        shapeRenderer.rect(playerX, playerY, playerWidth, playerHeight);
-        shapeRenderer.end();
-
+        drawPlayer();
         drawEnemy();
 
         if (attacking) {
             drawSwordHitBox();
+        }
+    }
+
+    private void updateGame(){
+        if (attacking) {
+            updateSwordHitBox();
+
+            if (enemyAlive && rectanglesOverlap(
+                swordX, swordY, swordWidth, swordHeight,
+                enemyX, enemyY, enemyWidth, enemyHeight
+            )) {
+                enemyAlive = false;
+            }
         }
     }
 
