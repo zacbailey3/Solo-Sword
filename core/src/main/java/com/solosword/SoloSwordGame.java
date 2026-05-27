@@ -31,6 +31,9 @@ public class SoloSwordGame extends ApplicationAdapter {
     private float enemyWidth = 32;
     private float enemyHeight = 32;
 
+    private boolean enemyAlive = true;
+
+
 
     @Override
     public void create() {
@@ -66,18 +69,34 @@ public class SoloSwordGame extends ApplicationAdapter {
             swordY = playerY - swordHeight;
         }
 
+        //if sword dimensions overlap with enemy, dead
+        if (enemyAlive && rectanglesOverlap(
+            swordX, swordY, swordWidth, swordHeight,
+             enemyX, enemyY, enemyWidth, enemyHeight
+        )) {
+            enemyAlive = false;
+        }
+
         //"sword" size/color
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(swordX, swordY, swordWidth, swordHeight);
         shapeRenderer.end();
     }
-    //create and color enemy
+    //create enemy, check alive
     private void drawEnemy() {
+        if (!enemyAlive) {
+            return;
+        }
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.GREEN);
         shapeRenderer.rect(enemyX, enemyY, enemyWidth, enemyHeight);
         shapeRenderer.end();
+    }
+
+    private void updateGame(){
+
     }
 
     //framerate dependant movement
@@ -86,6 +105,7 @@ public class SoloSwordGame extends ApplicationAdapter {
         float deltaTime = Gdx.graphics.getDeltaTime();
 
         handleInput(deltaTime);
+        updateGame();
 
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
@@ -145,5 +165,16 @@ public class SoloSwordGame extends ApplicationAdapter {
         batch.dispose();
         image.dispose();
         shapeRenderer.dispose();
+    }
+
+    //checking location to find if overlap
+    private boolean rectanglesOverlap(
+        float x1, float y1, float width1, float height1,
+        float x2, float y2, float width2, float height2
+    ) {
+        return x1 < x2 + width2 &&
+            x1 + width1 > x2 &&
+            y1 < y2 + height2 &&
+            y1 + height1 > y2;
     }
 }
