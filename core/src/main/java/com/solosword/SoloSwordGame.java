@@ -15,21 +15,10 @@ import com.badlogic.gdx.graphics.Color;
 public class SoloSwordGame extends ApplicationAdapter {
     private SpriteBatch batch;
     private Texture image;
-    private String facingDirection = "down";
     private ShapeRenderer shapeRenderer;
+
     private boolean attacking = false;
     private float attackTimer = 0;
-
-    private float playerX = 140;
-    private float playerY = 210;
-    private float playerSpeed = 200;
-    private float playerWidth = 32;
-    private float playerHeight = 32;
-
-    private float enemyX = 350;
-    private float enemyY = 220;
-    private float enemyWidth = 32;
-    private float enemyHeight = 32;
 
     private float swordX;
     private float swordY;
@@ -38,16 +27,18 @@ public class SoloSwordGame extends ApplicationAdapter {
 
     private boolean enemyAlive = true;
 
-
+    private Player player;
+    private Enemy enemy;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         image = new Texture("libgdx.png");
         shapeRenderer = new ShapeRenderer();
+        player = new Player();
+        enemy = new Enemy();
     }
 
-    //create a sword hitbox
     private void drawSwordHitBox() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.RED);
@@ -55,53 +46,52 @@ public class SoloSwordGame extends ApplicationAdapter {
         shapeRenderer.end();
     }
 
-
+    // Calculates the sword hitbox based on the player's current facing direction.
+    // The red rectangle is temporary debug art, but the hitbox logic is real.
     private void updateSwordHitBox() {
-        swordX = playerX;
-        swordY = playerY;
+        swordX = player.x;
+        swordY = player.y;
 
-        if (facingDirection.equals("right")) {
-            swordX = playerX + playerWidth;
-            swordY = playerY;
+        if (player.facingDirection.equals("right")) {
+            swordX = player.x + player.width;
+            swordY = player.y;
         }
 
-        if (facingDirection.equals("left")) {
-            swordX = playerX - swordWidth;
-            swordY = playerY;
+        if (player.facingDirection.equals("left")) {
+            swordX = player.x - swordWidth;
+            swordY = player.y;
         }
 
-        if (facingDirection.equals("up")) {
-            swordX = playerX;
-            swordY = playerY + playerHeight;
+        if (player.facingDirection.equals("up")) {
+            swordX = player.x;
+            swordY = player.y + player.height;
         }
 
-        if (facingDirection.equals("down")) {
-            swordX = playerX;
-            swordY = playerY - swordHeight;
+        if (player.facingDirection.equals("down")) {
+            swordX = player.x;
+            swordY = player.y - swordHeight;
         }
     }
 
-    //create enemy, check alive
     private void drawEnemy() {
-        if (!enemyAlive) {
+        if (!enemy.alive) {
             return;
         }
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(enemyX, enemyY, enemyWidth, enemyHeight);
+        shapeRenderer.rect(enemy.x, enemy.y, enemy.width, enemy.height);
         shapeRenderer.end();
     }
 
-    //create player
     private void drawPlayer() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.BLACK);
-        shapeRenderer.rect(playerX, playerY, playerWidth, playerHeight);
+        shapeRenderer.rect(player.x, player.y, player.width, player.height);
         shapeRenderer.end();
     }
 
-    //framerate dependant movement
+    // Main game loop: input first, then update game state, then draw.
     @Override
     public void render() {
         float deltaTime = Gdx.graphics.getDeltaTime();
@@ -119,44 +109,26 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
     }
 
+    // Updates game state that is not direct input.
+    // This is where timers, hitboxes, collision, and enemy behavior belong.
     private void updateGame(){
         if (attacking) {
             updateSwordHitBox();
 
-            if (enemyAlive && rectanglesOverlap(
+            if (enemy.alive && rectanglesOverlap(
                 swordX, swordY, swordWidth, swordHeight,
-                enemyX, enemyY, enemyWidth, enemyHeight
+                enemy.x, enemy.y, enemy.width, enemy.height
             )) {
-                enemyAlive = false;
+                enemy.alive = false;
             }
         }
     }
 
-    //directional movement and check Direction
+    // Reads movement input and updates the player's position.
+    // This stays inside Player because movement is player behavior.
     private void handleInput(float deltaTime) {
-        float moveAmount = playerSpeed * deltaTime;
+        player.handleInput(deltaTime);
 
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            playerX += moveAmount;
-            facingDirection = "right";
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            playerX -= moveAmount;
-            facingDirection = "left";
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            playerY += moveAmount;
-            facingDirection = "up";
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            playerY -= moveAmount;
-            facingDirection = "down";
-        }
-
-        //if attacking
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             attacking = true;
             attackTimer = 0.2f;
@@ -178,7 +150,8 @@ public class SoloSwordGame extends ApplicationAdapter {
         shapeRenderer.dispose();
     }
 
-    //checking location to find if overlap
+    // Generic rectangle collision check.
+    // Returns true when two rectangles overlap.
     private boolean rectanglesOverlap(
         float x1, float y1, float width1, float height1,
         float x2, float y2, float width2, float height2
