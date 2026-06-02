@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.Color;
+import java.util.ArrayList;
 
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
@@ -19,9 +20,9 @@ public class SoloSwordGame extends ApplicationAdapter {
     private float swordY;
     private float swordWidth = 32;
     private float swordHeight = 32;
-    private boolean enemyAlive = true;
     private Player player;
-    private Enemy enemy;
+    private ArrayList<Enemy> enemies;
+    private int gameLevel = 1;
     private boolean swordHasHitEnemy = false;
     private float playerDamageCooldown = 0;
     private float playerDamageCooldownDuration = 1.0f;
@@ -32,9 +33,24 @@ public class SoloSwordGame extends ApplicationAdapter {
     public void create() {
         shapeRenderer = new ShapeRenderer();
         player = new Player();
-        enemy = new Enemy();
+        enemies = new ArrayList<>();
         batch = new SpriteBatch();
         font = new BitmapFont();
+
+        spawnLevel();
+    }
+
+    // Creates enemies for the current level.
+    // For now, the number of enemies is equal to the level number.
+    private void spawnLevel() {
+        enemies.clear();
+
+        for (int i = 0; i < gameLevel; i++) {
+            float enemyX = 350 + (i * 45);
+            float enemyY = 220 + ((i % 2) * 80);
+
+            enemies.add(new Enemy(enemyX, enemyY));
+        }
     }
 
     private void drawSwordHitBox() {
@@ -79,23 +95,27 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
     }
 
-    private void drawEnemy() {
-        float healthBarWidth = enemy.width;
-        float healthBarHeight = 5;
-        float healthPercent = (float) enemy.health / enemy.maxHealth;
-
-        if (!enemy.alive) {
-            return;
-        }
-
+    private void drawEnemies() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(enemy.x, enemy.y, enemy.width, enemy.height);
 
-        shapeRenderer.setColor(Color.DARK_GRAY);
-        shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth, healthBarHeight);
-        shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth * healthPercent, healthBarHeight);
+        for (Enemy enemy : enemies) {
+            if (!enemy.alive) {
+                continue;
+            }
+
+            float healthBarWidth = enemy.width;
+            float healthBarHeight = 5;
+            float healthPercent = (float) enemy.health / enemy.maxHealth;
+
+            shapeRenderer.setColor(Color.GREEN);
+            shapeRenderer.rect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+            shapeRenderer.setColor(Color.DARK_GRAY);
+            shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth, healthBarHeight);
+
+            shapeRenderer.setColor(Color.RED);
+            shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth * healthPercent, healthBarHeight);
+        }
 
         shapeRenderer.end();
     }
@@ -142,7 +162,7 @@ public class SoloSwordGame extends ApplicationAdapter {
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
         drawPlayer();
-        drawEnemy();
+        drawEnemies();
         drawPlayerHealthBar();
 
         if (player.isDead()) {
@@ -156,26 +176,30 @@ public class SoloSwordGame extends ApplicationAdapter {
 
     // Updates game state that is not direct input.
     // This is where timers, hitboxes, collision, and enemy behavior belong.
-    private void updateGame(float deltaTime){
-
-        //how often player is damaged
-        if (playerDamageCooldown > 0) {
-            playerDamageCooldown -= Gdx.graphics.getDeltaTime();
+    private void updateGame(float deltaTime) {
+        if (player.isDead()) {
+            return;
         }
 
-        if (enemy.alive && playerDamageCooldown <= 0 && rectanglesOverlap(
-            player.x, player.y, player.width, player.height,
-            enemy.x, enemy.y, enemy.width, enemy.height
-        )) {
-            player.takeDamage(1);
-            enemy.pushAwayFromPlayer(player, 20);
-            playerDamageCooldown = playerDamageCooldownDuration;
+        if (playerDamageCooldown > 0) {
+            playerDamageCooldown -= deltaTime;
         }
 
         if (attacking) {
             updateSwordHitBox();
+        }
 
-            if (!swordHasHitEnemy && enemy.alive && rectanglesOverlap(
+        for (Enemy enemy : enemies) {
+            if (enemy.alive && playerDamageCooldown <= 0 && rectanglesOverlap(
+                player.x, player.y, player.width, player.height,
+                enemy.x, enemy.y, enemy.width, enemy.height
+            )) {
+                player.takeDamage(1);
+                enemy.pushAwayFromPlayer(player, 20);
+                playerDamageCooldown = playerDamageCooldownDuration;
+            }
+
+            if (attacking && !swordHasHitEnemy && enemy.alive && rectanglesOverlap(
                 swordX, swordY, swordWidth, swordHeight,
                 enemy.x, enemy.y, enemy.width, enemy.height
             )) {
@@ -183,10 +207,14 @@ public class SoloSwordGame extends ApplicationAdapter {
                 enemy.knockback(player.facingDirection, 20);
                 swordHasHitEnemy = true;
             }
+
+            enemy.chasePlayer(player, deltaTime);
         }
 
-        enemy.chasePlayer(player, deltaTime);
-
+        if (allEnemiesDefeated()) {
+            gameLevel++;
+            spawnLevel();
+        }
     }
 
     // Reads movement input and updates the player's position.
@@ -197,7 +225,8 @@ public class SoloSwordGame extends ApplicationAdapter {
         if (player.isDead()) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
                 player.reset();
-                enemy.reset();
+                gameLevel = 1;
+                spawnLevel();
                 attacking = false;
             }
 
@@ -206,13 +235,7 @@ public class SoloSwordGame extends ApplicationAdapter {
 
         //reset button to test combat without restarting app
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            enemy.reset();
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            attacking = true;
-            attackTimer = 0.2f;
-            swordHasHitEnemy = false;
+            spawnLevel();
         }
 
         //prevent attacking when dead
@@ -250,6 +273,16 @@ public class SoloSwordGame extends ApplicationAdapter {
             y1 + height1 > y2;
     }
 
+    private boolean allEnemiesDefeated() {
+        for (Enemy enemy : enemies) {
+            if (enemy.alive) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     //Game over popup
     private void drawGameOverPopup() {
         float boxWidth = 300;
@@ -266,5 +299,6 @@ public class SoloSwordGame extends ApplicationAdapter {
         font.draw(batch, "GAME OVER", boxX + 105, boxY + 80);
         font.draw(batch, "Press SPACE to restart", boxX + 65, boxY + 45);
         batch.end();
+
     }
 }

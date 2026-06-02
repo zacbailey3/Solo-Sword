@@ -5,16 +5,26 @@ import com.badlogic.gdx.math.Vector2;
 // Simple enemy state for now.
 // Later this can grow into health, movement, AI, and animations.
     public class Enemy {
-        public float startX = 350;
-        public float startY = 220;
-        public float x = startX;
-        public float y = startY;
+        public float startX;
+        public float startY;
+        public float x;
+        public float y;
+
         public float width = 32;
         public float height = 32;
+
         public boolean alive = true;
         public int health = 3;
         public int maxHealth = 3;
+
         public float speed = 80;
+
+        public Enemy (float startX, float startY) {
+            this.startX = startX;
+            this.startY = startY;
+            this.x = startX;
+            this.y = startY;
+        }
 
         //enemy taking damage checking alive
         public void takeDamage(int damage) {
