@@ -36,6 +36,25 @@ public class Player {
             y -= moveAmount;
             facingDirection = "down";
         }
+
+        keepInsideScreen();
+
+    }
+
+    //keep from running off screen
+    private void keepInsideScreen() {
+        if (x < 0) {
+            x = 0;
+        }
+        if (x + width > Gdx.graphics.getWidth()) {
+            x = Gdx.graphics.getWidth() - width;
+        }
+        if (y < 0) {
+            y = 0;
+        }
+        if (y + height > Gdx.graphics.getHeight()) {
+            y = Gdx.graphics.getHeight() - height;
+        }
     }
 
 }
