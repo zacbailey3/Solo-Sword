@@ -221,6 +221,7 @@ public class SoloSwordGame extends ApplicationAdapter {
     // This stays inside Player because movement is player behavior.
     private void handleInput(float deltaTime) {
         player.handleInput(deltaTime);
+        player.faceMouseCursor();
 
         if (player.isDead()) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
@@ -239,7 +240,9 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
 
         //prevent attacking when dead
-        if (!player.isDead() && Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+        if (!player.isDead() &&
+            (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) ||
+                Gdx.input.isButtonJustPressed(Input.Buttons.LEFT))) {
             attacking = true;
             attackTimer = 0.2f;
             swordHasHitEnemy = false;

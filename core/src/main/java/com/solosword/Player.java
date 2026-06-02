@@ -83,4 +83,30 @@ public class Player {
         }
     }
 
+    //mourse cursor facing direction
+    public void faceMouseCursor() {
+        float mouseX = Gdx.input.getX();
+        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+
+        float playerCenterX = x + width / 2;
+        float playerCenterY = y + height / 2;
+
+        float dx = mouseX - playerCenterX;
+        float dy = mouseY - playerCenterY;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+            if (dx > 0) {
+                facingDirection = Direction.RIGHT;
+            } else {
+                facingDirection = Direction.LEFT;
+            }
+        } else {
+            if (dy > 0) {
+                facingDirection = Direction.UP;
+            } else {
+                facingDirection = Direction.DOWN;
+            }
+        }
+    }
+
 }
