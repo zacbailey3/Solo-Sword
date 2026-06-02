@@ -13,8 +13,34 @@ public class Player {
     public float height = 32;
     public float speed = 200;
     public Direction facingDirection = Direction.DOWN;
+    public int health = 5;
+    public int maxHealth = 5;
+
+    public void takeDamage(int damage) {
+        health -= damage;
+
+        if (health < 0) {
+            health = 0;
+        }
+    }
+
+    public boolean isDead() {
+        return health <= 0;
+    }
+
+    //where to reset player when dead
+    public void reset() {
+        x = 140;
+        y = 210;
+        health = maxHealth;
+    }
 
     public void handleInput(float deltaTime) {
+
+        if (isDead()) {
+            return;
+        }
+
         float moveAmount = speed * deltaTime;
 
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
