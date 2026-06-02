@@ -44,22 +44,30 @@ public class SoloSwordGame extends ApplicationAdapter {
         swordY = player.y;
 
         if (player.facingDirection == Direction.RIGHT) {
+            swordWidth = 40;
+            swordHeight= 20;
             swordX = player.x + player.width;
-            swordY = player.y;
+            swordY = player.y + 6;
         }
 
         if (player.facingDirection == Direction.LEFT) {
+            swordWidth = 40;
+            swordHeight= 20;
             swordX = player.x - swordWidth;
-            swordY = player.y;
+            swordY = player.y + 6;
         }
 
         if (player.facingDirection == Direction.UP) {
-            swordX = player.x;
+            swordWidth = 20;
+            swordHeight= 40;
+            swordX = player.x + 6;
             swordY = player.y + player.height;
         }
 
         if (player.facingDirection == Direction.DOWN) {
-            swordX = player.x;
+            swordWidth = 20;
+            swordHeight= 40;
+            swordX = player.x + 6;
             swordY = player.y - swordHeight;
         }
     }
@@ -122,6 +130,7 @@ public class SoloSwordGame extends ApplicationAdapter {
                 enemy.x, enemy.y, enemy.width, enemy.height
             )) {
                 enemy.takeDamage(1);
+                enemy.knockback(player.facingDirection, 20);
                 swordHasHitEnemy = true;
             }
         }
@@ -132,6 +141,11 @@ public class SoloSwordGame extends ApplicationAdapter {
     // This stays inside Player because movement is player behavior.
     private void handleInput(float deltaTime) {
         player.handleInput(deltaTime);
+
+        //reset button to test combat without restarting app
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            enemy.reset();
+        }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             attacking = true;
