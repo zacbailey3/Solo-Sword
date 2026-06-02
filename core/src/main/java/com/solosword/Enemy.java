@@ -5,20 +5,25 @@ import com.badlogic.gdx.math.Vector2;
 // Simple enemy state for now.
 // Later this can grow into health, movement, AI, and animations.
     public class Enemy {
-        public float startX;
-        public float startY;
-        public float x;
-        public float y;
+    // Starting position
+    public float startX;
+    public float startY;
 
-        public float width = 32;
-        public float height = 32;
+    // Current position and size
+    public float x;
+    public float y;
+    public float width = 32;
+    public float height = 32;
 
-        public boolean alive = true;
-        public int health = 3;
-        public int maxHealth = 3;
+    // Health
+    public boolean alive = true;
+    public int health = 3;
+    public int maxHealth = 3;
 
-        public float speed = 80;
+    // Movement
+    public float speed = 80;
 
+        // Setup
         public Enemy (float startX, float startY) {
             this.startX = startX;
             this.startY = startY;
@@ -26,7 +31,16 @@ import com.badlogic.gdx.math.Vector2;
             this.y = startY;
         }
 
-        //enemy taking damage checking alive
+
+         //reset enemy when gone
+        public void reset() {
+            x = startX;
+            y = startY;
+            health = maxHealth;
+            alive = true;
+        }
+
+        // Health behavior
         public void takeDamage(int damage) {
             health -= damage;
 
@@ -53,6 +67,7 @@ import com.badlogic.gdx.math.Vector2;
         }
     }
 
+    // Movement and knockback
     //enemy collision with player
     public void pushAwayFromPlayer(Player player, float amount) {
         Vector2 direction = new Vector2(x - player.x, y - player.y);
@@ -62,14 +77,6 @@ import com.badlogic.gdx.math.Vector2;
             x += direction.x * amount;
             y += direction.y * amount;
         }
-    }
-
-    //reset enemy when gone
-    public void reset() {
-        x = startX;
-        y = startY;
-        health = maxHealth;
-        alive = true;
     }
 
     //enemy movement consistent when persuing player

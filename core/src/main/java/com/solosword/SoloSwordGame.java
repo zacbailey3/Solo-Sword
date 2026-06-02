@@ -1,154 +1,54 @@
 package com.solosword;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.Color;
-import java.util.ArrayList;
+import com.badlogic.gdx.utils.ScreenUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class SoloSwordGame extends ApplicationAdapter {
+    // Rendering
     private ShapeRenderer shapeRenderer;
+    private SpriteBatch batch;
+    private BitmapFont font;
+
+    // Game objects
+    private Player player;
+    private List<Enemy> enemies;
+
+    // Level state
+    private int gameLevel = 1;
+
+    // Attack state
     private boolean attacking = false;
     private float attackTimer = 0;
+    private boolean swordHasHitEnemy = false;
     private float swordX;
     private float swordY;
     private float swordWidth = 32;
     private float swordHeight = 32;
-    private Player player;
-    private ArrayList<Enemy> enemies;
-    private int gameLevel = 1;
-    private boolean swordHasHitEnemy = false;
+
+    // Player damage cooldown
     private float playerDamageCooldown = 0;
     private float playerDamageCooldownDuration = 1.0f;
-    private SpriteBatch batch;
-    private BitmapFont font;
 
     @Override
     public void create() {
         shapeRenderer = new ShapeRenderer();
-        player = new Player();
-        enemies = new ArrayList<>();
         batch = new SpriteBatch();
         font = new BitmapFont();
 
+        player = new Player();
+        enemies = new ArrayList<>();
+
         spawnLevel();
-    }
-
-    // Creates enemies for the current level.
-    // For now, the number of enemies is equal to the level number.
-    private void spawnLevel() {
-        enemies.clear();
-
-        for (int i = 0; i < gameLevel; i++) {
-            float enemyX = 350 + (i * 45);
-            float enemyY = 220 + ((i % 2) * 80);
-
-            enemies.add(new Enemy(enemyX, enemyY));
-        }
-    }
-
-    private void drawSwordHitBox() {
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(swordX, swordY, swordWidth, swordHeight);
-        shapeRenderer.end();
-    }
-
-    // Calculates the sword hitbox based on the player's current facing direction.
-    // The red rectangle is temporary debug art, but the hitbox logic is real.
-    private void updateSwordHitBox() {
-        swordX = player.x;
-        swordY = player.y;
-
-        if (player.facingDirection == Direction.RIGHT) {
-            swordWidth = 40;
-            swordHeight= 20;
-            swordX = player.x + player.width;
-            swordY = player.y + 6;
-        }
-
-        if (player.facingDirection == Direction.LEFT) {
-            swordWidth = 40;
-            swordHeight= 20;
-            swordX = player.x - swordWidth;
-            swordY = player.y + 6;
-        }
-
-        if (player.facingDirection == Direction.UP) {
-            swordWidth = 20;
-            swordHeight= 40;
-            swordX = player.x + 6;
-            swordY = player.y + player.height;
-        }
-
-        if (player.facingDirection == Direction.DOWN) {
-            swordWidth = 20;
-            swordHeight= 40;
-            swordX = player.x + 6;
-            swordY = player.y - swordHeight;
-        }
-    }
-
-    private void drawEnemies() {
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        for (Enemy enemy : enemies) {
-            if (!enemy.alive) {
-                continue;
-            }
-
-            float healthBarWidth = enemy.width;
-            float healthBarHeight = 5;
-            float healthPercent = (float) enemy.health / enemy.maxHealth;
-
-            shapeRenderer.setColor(Color.GREEN);
-            shapeRenderer.rect(enemy.x, enemy.y, enemy.width, enemy.height);
-
-            shapeRenderer.setColor(Color.DARK_GRAY);
-            shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth, healthBarHeight);
-
-            shapeRenderer.setColor(Color.RED);
-            shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth * healthPercent, healthBarHeight);
-        }
-
-        shapeRenderer.end();
-    }
-
-    private void drawPlayer() {
-
-        if (player.isDead()) {
-            shapeRenderer.setColor(Color.GRAY);
-        } else {
-            shapeRenderer.setColor(Color.BLACK);
-        }
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.rect(player.x, player.y, player.width, player.height);
-        shapeRenderer.end();
-    }
-
-    private void drawPlayerHealthBar() {
-        float barX = 20;
-        float barY = Gdx.graphics.getHeight() - 25;
-        float barWidth = 120;
-        float barHeight = 10;
-        float healthPercent = (float) player.health / player.maxHealth;
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        shapeRenderer.setColor(Color.DARK_GRAY);
-        shapeRenderer.rect(barX, barY, barWidth, barHeight);
-
-        shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(barX, barY, barWidth * healthPercent, barHeight);
-
-        shapeRenderer.end();
     }
 
     // Main game loop: input first, then update game state, then draw.
@@ -163,19 +63,56 @@ public class SoloSwordGame extends ApplicationAdapter {
 
         drawPlayer();
         drawEnemies();
+
+        if (attacking) {
+            drawSwordHitBox();
+        }
+
         drawPlayerHealthBar();
 
         if (player.isDead()) {
             drawGameOverPopup();
         }
+    }
+
+    // Reads player controls, debug controls, restart input, and attack input.
+    private void handleInput(float deltaTime) {
+        if (player.isDead()) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+                player.reset();
+                gameLevel = 1;
+                spawnLevel();
+                attacking = false;
+            }
+
+            return;
+        }
+
+        player.handleInput(deltaTime);
+        player.faceMouseCursor();
+
+        // Debug reset so we can test the current level without restarting the app.
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            spawnLevel();
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) ||
+            Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            attacking = true;
+            attackTimer = 0.2f;
+            swordHasHitEnemy = false;
+        }
 
         if (attacking) {
-            drawSwordHitBox();
+            attackTimer -= deltaTime;
+
+            if (attackTimer <= 0) {
+                attacking = false;
+            }
         }
     }
 
-    // Updates game state that is not direct input.
-    // This is where timers, hitboxes, collision, and enemy behavior belong.
+    // Updates timers, enemy movement, collision, damage, and level progression.
     private void updateGame(float deltaTime) {
         if (player.isDead()) {
             return;
@@ -217,76 +154,83 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
     }
 
-    // Reads movement input and updates the player's position.
-    // This stays inside Player because movement is player behavior.
-    private void handleInput(float deltaTime) {
-        player.handleInput(deltaTime);
-        player.faceMouseCursor();
+    // Creates enemies for the current level.
+    // For now, the number of enemies is equal to the level number.
+    private void spawnLevel() {
+        enemies.clear();
+
+        for (int i = 0; i < gameLevel; i++) {
+            float enemyX = 350 + (i * 45);
+            float enemyY = 220 + ((i % 2) * 80);
+
+            enemies.add(new Enemy(enemyX, enemyY));
+        }
+    }
+
+    private void drawPlayer() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         if (player.isDead()) {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-                player.reset();
-                gameLevel = 1;
-                spawnLevel();
-                attacking = false;
-            }
-
-            return;
+            shapeRenderer.setColor(Color.GRAY);
+        } else {
+            shapeRenderer.setColor(Color.BLACK);
         }
 
-        //reset button to test combat without restarting app
-        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            spawnLevel();
-        }
-
-        //prevent attacking when dead
-        if (!player.isDead() &&
-            (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) ||
-                Gdx.input.isButtonJustPressed(Input.Buttons.LEFT))) {
-            attacking = true;
-            attackTimer = 0.2f;
-            swordHasHitEnemy = false;
-        }
-
-        if (attacking) {
-            attackTimer -= deltaTime;
-
-            if (attackTimer <= 0) {
-                attacking = false;
-            }
-        }
+        shapeRenderer.rect(player.x, player.y, player.width, player.height);
+        shapeRenderer.end();
     }
 
-    @Override
-    public void dispose() {
-        shapeRenderer.dispose();
-        batch.dispose();
-        font.dispose();
-    }
+    private void drawEnemies() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-    // Generic rectangle collision check.
-    // Returns true when two rectangles overlap.
-    private boolean rectanglesOverlap(
-        float x1, float y1, float width1, float height1,
-        float x2, float y2, float width2, float height2
-    ) {
-        return x1 < x2 + width2 &&
-            x1 + width1 > x2 &&
-            y1 < y2 + height2 &&
-            y1 + height1 > y2;
-    }
-
-    private boolean allEnemiesDefeated() {
         for (Enemy enemy : enemies) {
-            if (enemy.alive) {
-                return false;
+            if (!enemy.alive) {
+                continue;
             }
+
+            float healthBarWidth = enemy.width;
+            float healthBarHeight = 5;
+            float healthPercent = (float) enemy.health / enemy.maxHealth;
+
+            shapeRenderer.setColor(Color.GREEN);
+            shapeRenderer.rect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+            shapeRenderer.setColor(Color.DARK_GRAY);
+            shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth, healthBarHeight);
+
+            shapeRenderer.setColor(Color.RED);
+            shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth * healthPercent, healthBarHeight);
         }
 
-        return true;
+        shapeRenderer.end();
     }
 
-    //Game over popup
+    private void drawSwordHitBox() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(swordX, swordY, swordWidth, swordHeight);
+        shapeRenderer.end();
+    }
+
+    private void drawPlayerHealthBar() {
+        float barX = 20;
+        float barY = Gdx.graphics.getHeight() - 25;
+        float barWidth = 120;
+        float barHeight = 10;
+        float healthPercent = (float) player.health / player.maxHealth;
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(barX, barY, barWidth, barHeight);
+
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(barX, barY, barWidth * healthPercent, barHeight);
+
+        shapeRenderer.end();
+    }
+
+    // Game over popup. Restart input is handled in handleInput().
     private void drawGameOverPopup() {
         float boxWidth = 300;
         float boxHeight = 120;
@@ -302,6 +246,69 @@ public class SoloSwordGame extends ApplicationAdapter {
         font.draw(batch, "GAME OVER", boxX + 105, boxY + 80);
         font.draw(batch, "Press SPACE to restart", boxX + 65, boxY + 45);
         batch.end();
+    }
 
+    // Calculates the sword hitbox based on the player's current facing direction.
+    // The red rectangle is temporary debug art, but the hitbox logic is real.
+    private void updateSwordHitBox() {
+        swordX = player.x;
+        swordY = player.y;
+
+        if (player.facingDirection == Direction.RIGHT) {
+            swordWidth = 40;
+            swordHeight = 20;
+            swordX = player.x + player.width;
+            swordY = player.y + 6;
+        }
+
+        if (player.facingDirection == Direction.LEFT) {
+            swordWidth = 40;
+            swordHeight = 20;
+            swordX = player.x - swordWidth;
+            swordY = player.y + 6;
+        }
+
+        if (player.facingDirection == Direction.UP) {
+            swordWidth = 20;
+            swordHeight = 40;
+            swordX = player.x + 6;
+            swordY = player.y + player.height;
+        }
+
+        if (player.facingDirection == Direction.DOWN) {
+            swordWidth = 20;
+            swordHeight = 40;
+            swordX = player.x + 6;
+            swordY = player.y - swordHeight;
+        }
+    }
+
+    private boolean allEnemiesDefeated() {
+        for (Enemy enemy : enemies) {
+            if (enemy.alive) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Generic rectangle collision check.
+    // Returns true when two rectangles overlap.
+    private boolean rectanglesOverlap(
+        float x1, float y1, float width1, float height1,
+        float x2, float y2, float width2, float height2
+    ) {
+        return x1 < x2 + width2 &&
+            x1 + width1 > x2 &&
+            y1 < y2 + height2 &&
+            y1 + height1 > y2;
+    }
+
+    @Override
+    public void dispose() {
+        shapeRenderer.dispose();
+        batch.dispose();
+        font.dispose();
     }
 }

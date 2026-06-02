@@ -7,15 +7,21 @@ import com.badlogic.gdx.Input;
 // Simple player state for now.
 // These fields are public while we are learning and refactoring quickly.
 public class Player {
+    // Position and size
     public float x = 140;
     public float y = 210;
     public float width = 32;
     public float height = 32;
+
+    // Movement
     public float speed = 200;
     public Direction facingDirection = Direction.DOWN;
+
+    // Health
     public int health = 5;
     public int maxHealth = 5;
 
+    // Health Behaviour
     public void takeDamage(int damage) {
         health -= damage;
 
@@ -28,13 +34,13 @@ public class Player {
         return health <= 0;
     }
 
-    //where to reset player when dead
     public void reset() {
         x = 140;
         y = 210;
         health = maxHealth;
     }
 
+    // Input and movement
     public void handleInput(float deltaTime) {
 
         if (isDead()) {
@@ -67,7 +73,7 @@ public class Player {
 
     }
 
-    //keep from running off screen
+    // keep from running off screen
     private void keepInsideScreen() {
         if (x < 0) {
             x = 0;
@@ -83,7 +89,7 @@ public class Player {
         }
     }
 
-    //mourse cursor facing direction
+    //mouse cursor facing direction
     public void faceMouseCursor() {
         float mouseX = Gdx.input.getX();
         float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
