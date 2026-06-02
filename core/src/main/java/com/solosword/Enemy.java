@@ -8,5 +8,19 @@ public class Enemy {
     public float width = 32;
     public float height = 32;
     public boolean alive = true;
+
+    public int health = 3;
+    public int maxHealth = 3;
+
+    //enemy taking damage checking alive
+    public void takeDamage(int damage) {
+        health -= damage;
+
+        if (health <= 0) {
+            alive = false;
+        }
+    }
+
+
 }
 

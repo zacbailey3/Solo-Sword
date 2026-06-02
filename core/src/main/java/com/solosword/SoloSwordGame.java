@@ -1,8 +1,6 @@
 package com.solosword;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -13,27 +11,20 @@ import com.badlogic.gdx.graphics.Color;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class SoloSwordGame extends ApplicationAdapter {
-    private SpriteBatch batch;
-    private Texture image;
     private ShapeRenderer shapeRenderer;
-
     private boolean attacking = false;
     private float attackTimer = 0;
-
     private float swordX;
     private float swordY;
     private float swordWidth = 32;
     private float swordHeight = 32;
-
     private boolean enemyAlive = true;
-
     private Player player;
     private Enemy enemy;
+    private boolean swordHasHitEnemy = false;
 
     @Override
     public void create() {
-        batch = new SpriteBatch();
-        image = new Texture("libgdx.png");
         shapeRenderer = new ShapeRenderer();
         player = new Player();
         enemy = new Enemy();
@@ -74,6 +65,10 @@ public class SoloSwordGame extends ApplicationAdapter {
     }
 
     private void drawEnemy() {
+        float healthBarWidth = enemy.width;
+        float healthBarHeight = 5;
+        float healthPercent = (float) enemy.health / enemy.maxHealth;
+
         if (!enemy.alive) {
             return;
         }
@@ -81,6 +76,12 @@ public class SoloSwordGame extends ApplicationAdapter {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.GREEN);
         shapeRenderer.rect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth, healthBarHeight);
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth * healthPercent, healthBarHeight);
+
         shapeRenderer.end();
     }
 
@@ -112,16 +113,19 @@ public class SoloSwordGame extends ApplicationAdapter {
     // Updates game state that is not direct input.
     // This is where timers, hitboxes, collision, and enemy behavior belong.
     private void updateGame(){
+
         if (attacking) {
             updateSwordHitBox();
 
-            if (enemy.alive && rectanglesOverlap(
+            if (!swordHasHitEnemy && enemy.alive && rectanglesOverlap(
                 swordX, swordY, swordWidth, swordHeight,
                 enemy.x, enemy.y, enemy.width, enemy.height
             )) {
-                enemy.alive = false;
+                enemy.takeDamage(1);
+                swordHasHitEnemy = true;
             }
         }
+
     }
 
     // Reads movement input and updates the player's position.
@@ -132,6 +136,7 @@ public class SoloSwordGame extends ApplicationAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             attacking = true;
             attackTimer = 0.2f;
+            swordHasHitEnemy = false;
         }
 
         if (attacking) {
@@ -145,8 +150,6 @@ public class SoloSwordGame extends ApplicationAdapter {
 
     @Override
     public void dispose() {
-        batch.dispose();
-        image.dispose();
         shapeRenderer.dispose();
     }
 
