@@ -43,22 +43,22 @@ public class SoloSwordGame extends ApplicationAdapter {
         swordX = player.x;
         swordY = player.y;
 
-        if (player.facingDirection.equals("right")) {
+        if (player.facingDirection == Direction.RIGHT) {
             swordX = player.x + player.width;
             swordY = player.y;
         }
 
-        if (player.facingDirection.equals("left")) {
+        if (player.facingDirection == Direction.LEFT) {
             swordX = player.x - swordWidth;
             swordY = player.y;
         }
 
-        if (player.facingDirection.equals("up")) {
+        if (player.facingDirection == Direction.UP) {
             swordX = player.x;
             swordY = player.y + player.height;
         }
 
-        if (player.facingDirection.equals("down")) {
+        if (player.facingDirection == Direction.DOWN) {
             swordX = player.x;
             swordY = player.y - swordHeight;
         }

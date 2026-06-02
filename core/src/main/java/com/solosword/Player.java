@@ -12,29 +12,29 @@ public class Player {
     public float width = 32;
     public float height = 32;
     public float speed = 200;
-    public String facingDirection = "down";
+    public Direction facingDirection = Direction.DOWN;
 
     public void handleInput(float deltaTime) {
         float moveAmount = speed * deltaTime;
 
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
             x += moveAmount;
-            facingDirection = "right";
+            facingDirection = Direction.RIGHT;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             x -= moveAmount;
-            facingDirection = "left";
+            facingDirection = Direction.LEFT;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
             y += moveAmount;
-            facingDirection = "up";
+            facingDirection = Direction.UP;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
             y -= moveAmount;
-            facingDirection = "down";
+            facingDirection = Direction.DOWN;
         }
 
         keepInsideScreen();

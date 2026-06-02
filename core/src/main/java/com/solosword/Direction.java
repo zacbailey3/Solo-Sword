@@ -1,4 +1,6 @@
 package com.solosword;
 
-public class Direction {
+//list of directions player can face
+public enum Direction {
+    UP, DOWN, LEFT, RIGHT
 }
