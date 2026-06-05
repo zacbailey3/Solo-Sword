@@ -13,6 +13,11 @@ public class Player {
     public float width = 32;
     public float height = 32;
 
+    // Character progression
+    public int characterLevel = 1;
+    public int experience = 0;
+    public int experienceToNextLevel = 10;
+
     // Movement
     public float speed = 200;
     public Direction facingDirection = Direction.DOWN;
@@ -112,6 +117,15 @@ public class Player {
             } else {
                 facingDirection = Direction.DOWN;
             }
+        }
+    }
+
+    public void gainExperience(int amount) {
+        experience += amount;
+
+        if (experience >= experienceToNextLevel) {
+            experience -= experienceToNextLevel;
+            characterLevel++;
         }
     }
 

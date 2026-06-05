@@ -23,6 +23,8 @@ import com.badlogic.gdx.math.Vector2;
     // Movement
     public float speed = 80;
 
+    public int experienceValue = 1;
+
         // Setup
         public Enemy (float startX, float startY) {
             this.startX = startX;

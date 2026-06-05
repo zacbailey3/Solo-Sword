@@ -68,6 +68,7 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
 
         drawPlayerHealthBar();
+        drawCharacterLevelText();
         drawLevelText();
 
         if (player.isDead()) {
@@ -132,6 +133,11 @@ public class SoloSwordGame extends ApplicationAdapter {
                 enemy.x, enemy.y, enemy.width, enemy.height
             )) {
                 enemy.takeDamage(1);
+
+                if (!enemy.alive) {
+                    player.gainExperience(enemy.experienceValue);
+                }
+
                 enemy.knockback(player.facingDirection, 20);
                 swordAttack.hasHitEnemy = true;
             }
@@ -185,10 +191,8 @@ public class SoloSwordGame extends ApplicationAdapter {
 
             shapeRenderer.setColor(Color.GREEN);
             shapeRenderer.rect(enemy.x, enemy.y, enemy.width, enemy.height);
-
             shapeRenderer.setColor(Color.DARK_GRAY);
             shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth, healthBarHeight);
-
             shapeRenderer.setColor(Color.RED);
             shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth * healthPercent, healthBarHeight);
         }
@@ -204,21 +208,24 @@ public class SoloSwordGame extends ApplicationAdapter {
     }
 
     private void drawPlayerHealthBar() {
-        float barX = 20;
+        float barX = 80;
         float barY = Gdx.graphics.getHeight() - 25;
         float barWidth = 120;
         float barHeight = 10;
         float healthPercent = (float) player.health / player.maxHealth;
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
         shapeRenderer.setColor(Color.DARK_GRAY);
         shapeRenderer.rect(barX, barY, barWidth, barHeight);
-
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(barX, barY, barWidth * healthPercent, barHeight);
-
         shapeRenderer.end();
+    }
+
+    private void drawCharacterLevelText() {
+        batch.begin();
+        font.draw(batch, "Lvl " + player.characterLevel, 20, Gdx.graphics.getHeight() - 15);
+        batch.end();
     }
 
     // Game over popup. Restart input is handled in handleInput().
