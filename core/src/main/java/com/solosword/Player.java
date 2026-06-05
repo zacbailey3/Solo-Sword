@@ -16,7 +16,7 @@ public class Player {
     // Character progression
     public int characterLevel = 1;
     public int experience = 0;
-    public int experienceToNextLevel = 10;
+    public int experienceToNextLevel = 5;
 
     // Movement
     public float speed = 200;
@@ -33,6 +33,11 @@ public class Player {
         if (health < 0) {
             health = 0;
         }
+    }
+
+    // damage increase with levels
+    public int getAttackDamage() {
+        return 1 + ((characterLevel - 1) / 2);
     }
 
     public boolean isDead() {
@@ -123,11 +128,13 @@ public class Player {
     public void gainExperience(int amount) {
         experience += amount;
 
-        if (experience >= experienceToNextLevel) {
+        while (experience >= experienceToNextLevel) {
             experience -= experienceToNextLevel;
             characterLevel++;
             maxHealth++;
             health = maxHealth;
+            //increase experience to next level upon leveling up
+            experienceToNextLevel = Math.round(experienceToNextLevel * 1.5f);
         }
     }
 

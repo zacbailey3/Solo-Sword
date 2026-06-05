@@ -15,6 +15,10 @@ import com.badlogic.gdx.math.Vector2;
     public float width = 32;
     public float height = 32;
 
+    //boss
+    public boolean boss = false;
+    public int contactDamage = 1;
+
     // Health
     public boolean alive = true;
     public int health = 3;
@@ -33,6 +37,20 @@ import com.badlogic.gdx.math.Vector2;
             this.y = startY;
         }
 
+        public static Enemy createBoss(float startX, float startY, int healthMultiplier) {
+            Enemy boss = new Enemy(startX, startY);
+
+            boss.boss = true;
+            boss.width = 64;
+            boss.height = 64;
+            boss.speed = 110;
+            boss.health = 10 * healthMultiplier;
+            boss.maxHealth = boss.health;
+            boss.contactDamage = 2;
+            boss.experienceValue = 5;
+
+            return boss;
+        }
 
          //reset enemy when gone
         public void reset() {

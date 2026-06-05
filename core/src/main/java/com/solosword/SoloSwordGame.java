@@ -150,7 +150,6 @@ public class SoloSwordGame extends ApplicationAdapter {
                 spawnLevel();
                 levelCleared = false;
             }
-
             return;
         }
 
@@ -167,7 +166,7 @@ public class SoloSwordGame extends ApplicationAdapter {
                 player.x, player.y, player.width, player.height,
                 enemy.x, enemy.y, enemy.width, enemy.height
             )) {
-                player.takeDamage(1);
+                player.takeDamage(enemy.contactDamage);
                 enemy.pushAwayFromPlayer(player, 20);
                 playerDamageCooldown = playerDamageCooldownDuration;
             }
@@ -176,7 +175,7 @@ public class SoloSwordGame extends ApplicationAdapter {
                 swordAttack.x, swordAttack.y, swordAttack.width, swordAttack.height,
                 enemy.x, enemy.y, enemy.width, enemy.height
             )) {
-                enemy.takeDamage(1);
+                enemy.takeDamage(player.getAttackDamage());
 
                 if (!enemy.alive) {
                     player.gainExperience(enemy.experienceValue);
@@ -199,6 +198,13 @@ public class SoloSwordGame extends ApplicationAdapter {
     // For now, the number of enemies is equal to the level number.
     private void spawnLevel() {
         enemies.clear();
+
+        //check if boss level
+        if (gameLevel % 5 == 0) {
+            int bossHealthMultiplier = gameLevel / 5;
+            enemies.add(Enemy.createBoss(320, 220, bossHealthMultiplier));
+            return;
+        }
 
         for (int i = 0; i < gameLevel; i++) {
             float enemyX = 350 + (i * 45);
@@ -233,7 +239,13 @@ public class SoloSwordGame extends ApplicationAdapter {
             float healthBarHeight = 5;
             float healthPercent = (float) enemy.health / enemy.maxHealth;
 
-            shapeRenderer.setColor(Color.GREEN);
+            //color based on enemy type
+            if (enemy.boss) {
+                shapeRenderer.setColor(Color.RED);
+            } else {
+                shapeRenderer.setColor(Color.GREEN);
+            }
+
             shapeRenderer.rect(enemy.x, enemy.y, enemy.width, enemy.height);
             shapeRenderer.setColor(Color.DARK_GRAY);
             shapeRenderer.rect(enemy.x, enemy.y + enemy.height + 6, healthBarWidth, healthBarHeight);
@@ -246,7 +258,7 @@ public class SoloSwordGame extends ApplicationAdapter {
 
     private void drawSwordHitBox() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.setColor(Color.LIGHT_GRAY);
         shapeRenderer.rect(swordAttack.x, swordAttack.y, swordAttack.width, swordAttack.height);
         shapeRenderer.end();
     }
