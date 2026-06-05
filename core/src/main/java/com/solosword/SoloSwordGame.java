@@ -208,11 +208,29 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
 
         for (int i = 0; i < gameLevel; i++) {
-            float enemyX = MathUtils.random(40, Gdx.graphics.getWidth() - 80);
-            float enemyY = MathUtils.random(40, Gdx.graphics.getHeight() - 80);
+            float enemyX;
+            float enemyY;
+
+            do {
+                enemyX = MathUtils.random(40f, Gdx.graphics.getWidth() - 80f);
+                enemyY = MathUtils.random(40f, Gdx.graphics.getHeight() - 80f);
+            } while (tooCloseToPlayer(enemyX, enemyY));
 
             enemies.add(new Enemy(enemyX, enemyY));
         }
+
+    }
+
+    //avoid spawning enemies too close to player
+    private boolean tooCloseToPlayer(float x, float y) {
+        float playerCenterX = player.x + player.width / 2;
+        float playerCenterY = player.y + player.height / 2;
+
+        float dx = x - playerCenterX;
+        float dy = y - playerCenterY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+
+        return distance < 150;
     }
 
     private void drawPlayer() {
