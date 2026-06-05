@@ -21,19 +21,11 @@ public class SoloSwordGame extends ApplicationAdapter {
 
     // Game objects
     private Player player;
+    private SwordAttack swordAttack;
     private List<Enemy> enemies;
 
     // Level state
     private int gameLevel = 1;
-
-    // Attack state
-    private boolean attacking = false;
-    private float attackTimer = 0;
-    private boolean swordHasHitEnemy = false;
-    private float swordX;
-    private float swordY;
-    private float swordWidth = 32;
-    private float swordHeight = 32;
 
     // Player damage cooldown
     private float playerDamageCooldown = 0;
@@ -46,6 +38,7 @@ public class SoloSwordGame extends ApplicationAdapter {
         font = new BitmapFont();
 
         player = new Player();
+        swordAttack = new SwordAttack();
         enemies = new ArrayList<>();
 
         spawnLevel();
@@ -64,7 +57,7 @@ public class SoloSwordGame extends ApplicationAdapter {
         drawPlayer();
         drawEnemies();
 
-        if (attacking) {
+        if (swordAttack.active) {
             drawSwordHitBox();
         }
 
@@ -82,7 +75,7 @@ public class SoloSwordGame extends ApplicationAdapter {
                 player.reset();
                 gameLevel = 1;
                 spawnLevel();
-                attacking = false;
+                swordAttack.stop();
             }
 
             return;
@@ -98,18 +91,10 @@ public class SoloSwordGame extends ApplicationAdapter {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) ||
             Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            attacking = true;
-            attackTimer = 0.2f;
-            swordHasHitEnemy = false;
+            swordAttack.start();
         }
 
-        if (attacking) {
-            attackTimer -= deltaTime;
-
-            if (attackTimer <= 0) {
-                attacking = false;
-            }
-        }
+        swordAttack.update(deltaTime);
     }
 
     // Updates timers, enemy movement, collision, damage, and level progression.
@@ -122,8 +107,8 @@ public class SoloSwordGame extends ApplicationAdapter {
             playerDamageCooldown -= deltaTime;
         }
 
-        if (attacking) {
-            updateSwordHitBox();
+        if (swordAttack.active) {
+            swordAttack.updateHitBox(player);
         }
 
         for (Enemy enemy : enemies) {
@@ -136,13 +121,13 @@ public class SoloSwordGame extends ApplicationAdapter {
                 playerDamageCooldown = playerDamageCooldownDuration;
             }
 
-            if (attacking && !swordHasHitEnemy && enemy.alive && rectanglesOverlap(
-                swordX, swordY, swordWidth, swordHeight,
+            if (swordAttack.active && !swordAttack.hasHitEnemy && enemy.alive && rectanglesOverlap(
+                swordAttack.x, swordAttack.y, swordAttack.width, swordAttack.height,
                 enemy.x, enemy.y, enemy.width, enemy.height
             )) {
                 enemy.takeDamage(1);
                 enemy.knockback(player.facingDirection, 20);
-                swordHasHitEnemy = true;
+                swordAttack.hasHitEnemy = true;
             }
 
             enemy.chasePlayer(player, deltaTime);
@@ -208,7 +193,7 @@ public class SoloSwordGame extends ApplicationAdapter {
     private void drawSwordHitBox() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(swordX, swordY, swordWidth, swordHeight);
+        shapeRenderer.rect(swordAttack.x, swordAttack.y, swordAttack.width, swordAttack.height);
         shapeRenderer.end();
     }
 
@@ -246,41 +231,6 @@ public class SoloSwordGame extends ApplicationAdapter {
         font.draw(batch, "GAME OVER", boxX + 105, boxY + 80);
         font.draw(batch, "Press SPACE to restart", boxX + 65, boxY + 45);
         batch.end();
-    }
-
-    // Calculates the sword hitbox based on the player's current facing direction.
-    // The red rectangle is temporary debug art, but the hitbox logic is real.
-    private void updateSwordHitBox() {
-        swordX = player.x;
-        swordY = player.y;
-
-        if (player.facingDirection == Direction.RIGHT) {
-            swordWidth = 40;
-            swordHeight = 20;
-            swordX = player.x + player.width;
-            swordY = player.y + 6;
-        }
-
-        if (player.facingDirection == Direction.LEFT) {
-            swordWidth = 40;
-            swordHeight = 20;
-            swordX = player.x - swordWidth;
-            swordY = player.y + 6;
-        }
-
-        if (player.facingDirection == Direction.UP) {
-            swordWidth = 20;
-            swordHeight = 40;
-            swordX = player.x + 6;
-            swordY = player.y + player.height;
-        }
-
-        if (player.facingDirection == Direction.DOWN) {
-            swordWidth = 20;
-            swordHeight = 40;
-            swordX = player.x + 6;
-            swordY = player.y - swordHeight;
-        }
     }
 
     private boolean allEnemiesDefeated() {
