@@ -126,6 +126,8 @@ public class Player {
         if (experience >= experienceToNextLevel) {
             experience -= experienceToNextLevel;
             characterLevel++;
+            maxHealth++;
+            health = maxHealth;
         }
     }
 

@@ -31,6 +31,11 @@ public class SoloSwordGame extends ApplicationAdapter {
     private float playerDamageCooldown = 0;
     private float playerDamageCooldownDuration = 1.0f;
 
+    //game level
+    private boolean levelCleared = false;
+    private float levelClearTimer = 0;
+    private float levelClearDelay = 1.0f;
+
     @Override
     public void create() {
         shapeRenderer = new ShapeRenderer();
@@ -46,7 +51,24 @@ public class SoloSwordGame extends ApplicationAdapter {
 
     private void drawLevelText() {
         batch.begin();
-        font.draw(batch, "Level " + gameLevel, 20, Gdx.graphics.getHeight() - 45);
+        font.draw(batch, "Floor " + gameLevel, Gdx.graphics.getBackBufferWidth() - 90, Gdx.graphics.getHeight() - 15);
+        batch.end();
+    }
+
+    private void drawLevelClearText() {
+        batch.begin();
+        font.draw(batch, "Level Clear", Gdx.graphics.getWidth() / 2f - 40, Gdx.graphics.getHeight() / 2f);
+        batch.end();
+    }
+
+    private void drawExperienceText() {
+        batch.begin();
+        font.draw(
+            batch,
+            "XP " + player.experience + "/" + player.experienceToNextLevel,
+            20,
+            Gdx.graphics.getHeight() - 35
+        );
         batch.end();
     }
 
@@ -68,11 +90,21 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
 
         drawPlayerHealthBar();
+        drawHealthText();
+
         drawCharacterLevelText();
         drawLevelText();
 
+        drawExperienceText();
+
+
+
         if (player.isDead()) {
             drawGameOverPopup();
+        }
+
+        if (levelCleared) {
+            drawLevelClearText();
         }
     }
 
@@ -107,6 +139,18 @@ public class SoloSwordGame extends ApplicationAdapter {
     // Updates timers, enemy movement, collision, damage, and level progression.
     private void updateGame(float deltaTime) {
         if (player.isDead()) {
+            return;
+        }
+
+        if (levelCleared) {
+            levelClearTimer -= deltaTime;
+
+            if (levelClearTimer <= 0) {
+                gameLevel++;
+                spawnLevel();
+                levelCleared = false;
+            }
+
             return;
         }
 
@@ -146,8 +190,8 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
 
         if (allEnemiesDefeated()) {
-            gameLevel++;
-            spawnLevel();
+            levelCleared = true;
+            levelClearTimer = levelClearDelay;
         }
     }
 
@@ -207,6 +251,7 @@ public class SoloSwordGame extends ApplicationAdapter {
         shapeRenderer.end();
     }
 
+    //HEALTH BAR
     private void drawPlayerHealthBar() {
         float barX = 80;
         float barY = Gdx.graphics.getHeight() - 25;
@@ -220,6 +265,17 @@ public class SoloSwordGame extends ApplicationAdapter {
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(barX, barY, barWidth * healthPercent, barHeight);
         shapeRenderer.end();
+    }
+
+    private void drawHealthText() {
+        batch.begin();
+        font.draw(
+            batch,
+            player.health + "/" + player.maxHealth,
+            210,
+            Gdx.graphics.getHeight() - 15
+        );
+        batch.end();
     }
 
     private void drawCharacterLevelText() {
