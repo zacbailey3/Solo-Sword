@@ -44,6 +44,12 @@ public class SoloSwordGame extends ApplicationAdapter {
         spawnLevel();
     }
 
+    private void drawLevelText() {
+        batch.begin();
+        font.draw(batch, "Level " + gameLevel, 20, Gdx.graphics.getHeight() - 45);
+        batch.end();
+    }
+
     // Main game loop: input first, then update game state, then draw.
     @Override
     public void render() {
@@ -62,6 +68,7 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
 
         drawPlayerHealthBar();
+        drawLevelText();
 
         if (player.isDead()) {
             drawGameOverPopup();
@@ -73,7 +80,6 @@ public class SoloSwordGame extends ApplicationAdapter {
         if (player.isDead()) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
                 player.reset();
-                gameLevel = 1;
                 spawnLevel();
                 swordAttack.stop();
             }
