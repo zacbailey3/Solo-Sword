@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.ArrayList;
@@ -207,8 +208,8 @@ public class SoloSwordGame extends ApplicationAdapter {
         }
 
         for (int i = 0; i < gameLevel; i++) {
-            float enemyX = 350 + (i * 45);
-            float enemyY = 220 + ((i % 2) * 80);
+            float enemyX = MathUtils.random(40, Gdx.graphics.getWidth() - 80);
+            float enemyY = MathUtils.random(40, Gdx.graphics.getHeight() - 80);
 
             enemies.add(new Enemy(enemyX, enemyY));
         }
